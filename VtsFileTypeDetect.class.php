@@ -48,7 +48,7 @@ class VtsFileTypeDetect {
 		if (is_readable($file)) {
 			$h = fopen($file, 'r');
 			$line = trim(fgets($h, 128));
-			if (($line[0] == '[') && ($line[strlen($line)-1] == ']')) {
+			if ((substr($line,0,1) == '[') && ($line[strlen($line)-1] == ']')) {
 				$line = substr($line, 1, strlen($line)-2);
 				foreach ($inis as $ini) {
 					if (isset($ini['OidHeader'][$line]))  return $ini['OidHeader'][$line];
