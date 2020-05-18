@@ -33,43 +33,38 @@ class VtsFileTypeDetect {
 		return false;
 	}
 
-	public static function getDescription($file, $filename1=__DIR__.'/filetypes.conf', $filename2=__DIR__.'/filetypes.local') {
+	public static function getDescription($file, $filenames=array(__DIR__.'/filetypes.local', __DIR__.'/filetypes.conf')) {
 		// TODO: Make it multi-lang
 
-		$ini = !file_exists($filename1) ? array() : parse_ini_file($filename1, true, INI_SCANNER_RAW);
-		if (!isset($ini['OidHeader']))     $ini['OidHeader']     = array();
-		if (!isset($ini['GuidHeader']))    $ini['GuidHeader']    = array();
-		if (!isset($ini['FileExtension'])) $ini['FileExtension'] = array();
-		if (!isset($ini['MimeType']))      $ini['MimeType']      = array();
-
-		$ini2 = !file_exists($filename2) ? array() : parse_ini_file($filename2, true, INI_SCANNER_RAW);
-		if (!isset($ini2['OidHeader']))     $ini2['OidHeader']     = array();
-		if (!isset($ini2['GuidHeader']))    $ini2['GuidHeader']    = array();
-		if (!isset($ini2['FileExtension'])) $ini2['FileExtension'] = array();
-		if (!isset($ini2['MimeType']))      $ini2['MimeType']      = array();
+		$inis = array();
+		foreach ($filenames as $num => $filename) {
+			$inis[$num] = !file_exists($filename) ? array() : parse_ini_file($filename, true, INI_SCANNER_RAW);
+			if (!isset($inis[$num]['OidHeader']))     $inis[$num]['OidHeader']     = array();
+			if (!isset($inis[$num]['GuidHeader']))    $inis[$num]['GuidHeader']    = array();
+			if (!isset($inis[$num]['FileExtension'])) $inis[$num]['FileExtension'] = array();
+			if (!isset($inis[$num]['MimeType']))      $inis[$num]['MimeType']      = array();
+		}
 
 		if (is_readable($file)) {
 			$h = fopen($file, 'r');
 			$line = trim(fgets($h, 128));
 			if (($line[0] == '[') && ($line[strlen($line)-1] == ']')) {
 				$line = substr($line, 1, strlen($line)-2);
-				if (isset($ini2['OidHeader'][$line]))  return $ini2['OidHeader'][$line];
-				if (isset($ini['OidHeader'][$line]))   return $ini['OidHeader'][$line];
-				if (isset($ini2['GuidHeader'][$line])) return $ini2['GuidHeader'][$line];
-				if (isset($ini['GuidHeader'][$line]))  return $ini['GuidHeader'][$line];
+				foreach ($inis as $ini) {
+					if (isset($ini['OidHeader'][$line]))  return $ini['OidHeader'][$line];
+				}
+				foreach ($inis as $ini) {
+					if (isset($ini['GuidHeader'][$line])) return $ini['GuidHeader'][$line];
+				}
 			}
 			fclose($h);
 		}
 
-		foreach ($ini2['FileExtension'] as $ext => $name) {
-			if (strtoupper(substr($file, -strlen($ext)-1)) == strtoupper('.'.$ext)) {
-				return $name;
-			}
-		}
-
-		foreach ($ini['FileExtension'] as $ext => $name) {
-			if (strtoupper(substr($file, -strlen($ext)-1)) == strtoupper('.'.$ext)) {
-				return $name;
+		foreach ($inis as $ini) {
+			foreach ($ini['FileExtension'] as $ext => $name) {
+				if (strtoupper(substr($file, -strlen($ext)-1)) == strtoupper('.'.$ext)) {
+					return $name;
+				}
 			}
 		}
 
@@ -81,8 +76,9 @@ class VtsFileTypeDetect {
 			$mime = self::getMimeType($file);
 		}
 		if ($mime) {
-			if (isset($ini2['MimeType'][$mime])) return $ini2['MimeType'][$mime];
-			if (isset($ini['MimeType'][$mime]))  return $ini['MimeType'][$mime];
+			foreach ($inis as $ini) {
+				if (isset($ini['MimeType'][$mime]))  return $ini['MimeType'][$mime];
+			}
 		}
 
 		return $ini['Static']['LngUnknown'];
