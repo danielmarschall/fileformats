@@ -22,6 +22,8 @@
 class VtsFileTypeDetect {
 
 	public static function getMimeType($filename) {
+	    $mime_types = array();
+	    
 		include __DIR__ . '/mimetype_lookup.inc.php';
 
 		foreach ($mime_types as $ext => $mime) {
