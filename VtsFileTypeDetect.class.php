@@ -2,9 +2,9 @@
 
 /*
  * File Type Detection for PHP
- * Copyright 2020 Daniel Marschall, ViaThinkSoft
+ * Copyright 2020 - 2021 Daniel Marschall, ViaThinkSoft
  *
- *    Revision 2020-05-17
+ *    Revision 2021-05-21
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,11 @@
 class VtsFileTypeDetect {
 
 	public static function getMimeType($filename) {
-	    $mime_types = array();
-	    
+		$mime_types = array();
+
 		include __DIR__ . '/mimetype_lookup.inc.php';
 
+		/** @phpstan-ignore-next-line */
 		foreach ($mime_types as $ext => $mime) {
 			if (strtoupper(substr($filename, -strlen($ext)-1)) == strtoupper('.'.$ext)) {
 				return $mime;
@@ -83,7 +84,12 @@ class VtsFileTypeDetect {
 			}
 		}
 
-		return $ini['Static']['LngUnknown'];
+		foreach ($inis as $ini) {
+			if (isset($ini['Static']['LngUnknown'])) {
+				return $ini['Static']['LngUnknown'];
+			}
+		}
+		return 'Unknown';
 	}
 
 }
