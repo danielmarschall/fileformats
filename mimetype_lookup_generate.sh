@@ -6,10 +6,14 @@ define('APACHE_MIME_TYPES_URL','https://svn.apache.org/repos/asf/httpd/httpd/tru
 function generateUpToDateMimeArray($url) {
 	// Based on https://www.php.net/manual/de/function.mime-content-type.php#107798 , modified
 	$s = array();
+	$dupcheck = array();
 	foreach (@explode("\n",@file_get_contents($url))as $x) {
 		if (isset($x[0])&&$x[0]!=='#'&&preg_match_all('#([^\s]+)#',$x,$out)&&isset($out[1])&&($c=count($out[1]))>1) {
 			for ($i=1;$i<$c;$i++) {
-				$s[] = "\t'".$out[1][$i]."' => '".$out[1][0]."'";
+				if (!isset($dupcheck[$out[1][$i]])) {
+					$s[] = "\t'".$out[1][$i]."' => '".$out[1][0]."'";
+					$dupcheck[$out[1][$i]] = true;
+				}
 			}
 		}
 	}
